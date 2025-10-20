@@ -14,6 +14,7 @@ public class CustomerConverter {
     private ModelMapper modelMapper;
     public CustomerDTO toCustomerDTO(Customer customerEntity){
         CustomerDTO customerDTO = modelMapper.map(customerEntity, CustomerDTO.class);
+        customerDTO.setPassword(null);
         return customerDTO;
     }
     public Customer toCustomerEntity(CustomerCreateRequest customerCreateRequest){
@@ -22,6 +23,8 @@ public class CustomerConverter {
         customerEntity.setFullname(customerCreateRequest.getFullname());
         customerEntity.setPhone(customerCreateRequest.getPhone());
         customerEntity.setEmail(customerCreateRequest.getEmail());
+        customerEntity.setUsername(customerCreateRequest.getUsername());
+        customerEntity.setPassword(customerCreateRequest.getPassword());
         //customerEntity.setCompanyname(customerCreateRequest.getCompanyname());
         customerEntity.setDemand(customerCreateRequest.getDemand());
         // ⚙️ Nếu khách không nhập companyname hoặc status → gán mặc định
