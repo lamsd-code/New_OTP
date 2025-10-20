@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title layout:fragment="pageTitle">Đăng ký tài khoản | SkyLand</title>
+    <style>
+        .register-hero {
+            min-height: calc(100vh - 180px);
+            background: linear-gradient(135deg, #e0f7ff 0%, #d3ffe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 15px;
+        }
+        .register-card {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+            padding: 36px 32px 44px;
+            position: relative;
+        }
+        .register-card:before {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(0, 188, 140, 0.4), rgba(0, 123, 255, 0.4));
+            z-index: -1;
+            filter: blur(18px);
+        }
+        .register-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            color: #1b5e20;
+        }
+        .register-card p {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 28px;
+        }
+        .register-card label {
+            font-weight: 600;
+            color: #2f4858;
+            margin-bottom: 6px;
+        }
+        .register-card input,
+        .register-card textarea {
+            border-radius: 12px;
+            border: 1px solid #dfe6e9;
+            padding: 12px 14px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+        .register-card input:focus,
+        .register-card textarea:focus {
+            border-color: #00c48c;
+            box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.15);
+            outline: none;
+        }
+        .register-card textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+        .otp-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .otp-buttons button {
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            color: #fff;
+        }
+        .otp-buttons button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .otp-buttons button[data-channel="email"] {
+            background: #0077ff;
+            box-shadow: 0 12px 24px rgba(0, 119, 255, 0.25);
+        }
+        .otp-buttons button[data-channel="sms"] {
+            background: #ff7b54;
+            box-shadow: 0 12px 24px rgba(255, 123, 84, 0.25);
+        }
+        .otp-buttons button.active {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(0, 188, 140, 0.35);
+        }
+        .register-submit {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00c48c, #009688);
+            color: #fff;
+            box-shadow: 0 16px 30px rgba(0, 148, 96, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .register-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(0, 148, 96, 0.32);
+        }
+        .alert-custom {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        @media (max-width: 576px) {
+            .register-card {
+                padding: 28px 20px 36px;
+                border-radius: 20px;
+            }
+            .otp-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="page-wrapper">
+    <section class="register-hero">
+        <div class="register-card">
+            <h1>Đăng ký tài khoản</h1>
+            <p>Điền đầy đủ thông tin để tạo tài khoản và nhận mã OTP xác thực.</p>
+            <div id="registerAlert" class="alert alert-custom d-none" role="alert"></div>
+            <form id="registerForm" novalidate>
+                <div class="mb-3">
+                    <label for="fullname" class="form-label">Họ và tên *</label>
+                    <input type="text" id="fullname" class="form-control" placeholder="VD: Nguyễn Văn A" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Số điện thoại *</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="VD: 0987654321" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email *</label>
+                    <input type="email" id="email" class="form-control" placeholder="VD: email@example.com" required>
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập *</label>
+                    <input type="text" id="username" class="form-control" placeholder="Tên đăng nhập mong muốn" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu *</label>
+                    <input type="password" id="password" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Nhập lại mật khẩu *</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                </div>
+                <div class="mb-3">
+                    <label for="company" class="form-label">Tên doanh nghiệp (không bắt buộc)</label>
+                    <input type="text" id="company" class="form-control" placeholder="Công ty của bạn">
+                </div>
+                <div class="mb-3">
+                    <label for="demand" class="form-label">Nhu cầu của bạn</label>
+                    <textarea id="demand" class="form-control" placeholder="Chia sẻ nhu cầu về sản phẩm hoặc dịch vụ"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="otp" class="form-label">Mã OTP *</label>
+                    <input type="text" id="otp" class="form-control" placeholder="Nhập mã OTP 6 số" maxlength="6" required>
+                </div>
+                <div class="otp-buttons mb-3">
+                    <button type="button" id="otpEmailBtn" data-channel="email">Gửi OTP qua Email</button>
+                    <button type="button" id="otpSmsBtn" data-channel="sms">Gửi OTP qua SMS</button>
+                </div>
+                <button type="submit" class="register-submit">Đăng ký</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const alertBox = document.getElementById('registerAlert');
+        const form = document.getElementById('registerForm');
+        const otpEmailBtn = document.getElementById('otpEmailBtn');
+        const otpSmsBtn = document.getElementById('otpSmsBtn');
+        let otpTarget = null;
+
+        function showAlert(message, type = 'info') {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} alert-custom`;
+            alertBox.classList.remove('d-none');
+        }
+
+        function resetOtpButtons() {
+            otpEmailBtn.classList.remove('active');
+            otpSmsBtn.classList.remove('active');
+            otpEmailBtn.disabled = false;
+            otpSmsBtn.disabled = false;
+        }
+
+        async function sendOtp(channel) {
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (channel === 'email' && !email) {
+                showAlert('Vui lòng nhập email trước khi yêu cầu OTP.', 'warning');
+                return;
+            }
+            if (channel === 'sms' && !phone) {
+                showAlert('Vui lòng nhập số điện thoại trước khi yêu cầu OTP.', 'warning');
+                return;
+            }
+
+            const targetButton = channel === 'email' ? otpEmailBtn : otpSmsBtn;
+            const url = channel === 'email' ? '/auth/otp/send/email' : '/auth/otp/send/sms';
+            const payload = new URLSearchParams();
+            payload.append(channel === 'email' ? 'email' : 'phone', channel === 'email' ? email : phone);
+
+            try {
+                targetButton.disabled = true;
+                targetButton.classList.add('active');
+                showAlert('Đang gửi mã OTP, vui lòng chờ...', 'info');
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: payload
+                });
+                const text = await response.text();
+                if (response.ok) {
+                    otpTarget = channel;
+                    showAlert('Mã OTP đã được gửi. Vui lòng kiểm tra ' + (channel === 'email' ? 'email' : 'tin nhắn SMS') + ' của bạn.', 'success');
+                } else {
+                    showAlert(text || 'Không thể gửi mã OTP. Vui lòng thử lại.', 'danger');
+                    targetButton.disabled = false;
+                    targetButton.classList.remove('active');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại.', 'danger');
+                targetButton.disabled = false;
+                targetButton.classList.remove('active');
+            }
+        }
+
+        otpEmailBtn.addEventListener('click', () => sendOtp('email'));
+        otpSmsBtn.addEventListener('click', () => sendOtp('sms'));
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const fullname = document.getElementById('fullname').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const companyname = document.getElementById('company').value.trim();
+            const demand = document.getElementById('demand').value.trim();
+            const otp = document.getElementById('otp').value.trim();
+
+            if (!fullname || !phone || !email || !username || !password) {
+                showAlert('Vui lòng điền đầy đủ các trường bắt buộc.', 'warning');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAlert('Mật khẩu phải có ít nhất 6 ký tự.', 'warning');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showAlert('Mật khẩu xác nhận không trùng khớp.', 'warning');
+                return;
+            }
+
+            if (!otpTarget) {
+                showAlert('Vui lòng lấy mã OTP qua Email hoặc SMS trước khi đăng ký.', 'warning');
+                return;
+            }
+
+            if (!otp || otp.length < 4) {
+                showAlert('Vui lòng nhập mã OTP hợp lệ.', 'warning');
+                return;
+            }
+
+            const payload = {
+                fullname,
+                phone,
+                email,
+                username,
+                password,
+                companyname,
+                demand,
+                status: 'Chờ kích hoạt',
+                otp,
+                otpTarget
+            };
+
+            try {
+                resetOtpButtons();
+                showAlert('Đang xử lý đăng ký của bạn...', 'info');
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert(data.message || 'Đăng ký thành công. Bạn sẽ được chuyển về trang chủ.', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/trang-chu';
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Đăng ký thất bại. Vui lòng thử lại.', 'danger');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Có lỗi xảy ra khi xử lý đăng ký. Vui lòng thử lại.', 'danger');
+            }
+        });
+    });
+</script>
+</body>
+</html>
