@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title layout:fragment="pageTitle">Đăng ký tài khoản | SkyLand</title>
+    <style>
+        .register-hero {
+            min-height: calc(100vh - 180px);
+            background: linear-gradient(135deg, #e0f7ff 0%, #d3ffe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 15px;
+        }
+        .register-card {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+            padding: 36px 32px 44px;
+            position: relative;
+        }
+        .register-card:before {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(0, 188, 140, 0.4), rgba(0, 123, 255, 0.4));
+            z-index: -1;
+            filter: blur(18px);
+        }
+        .register-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            color: #1b5e20;
+        }
+        .register-card p {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 28px;
+        }
+        .register-card label {
+            font-weight: 600;
+            color: #2f4858;
+            margin-bottom: 6px;
+        }
+        .register-card input,
+        .register-card textarea {
+            border-radius: 12px;
+            border: 1px solid #dfe6e9;
+            padding: 12px 14px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+        .register-card input:focus,
+        .register-card textarea:focus {
+            border-color: #00c48c;
+            box-shadow: 0 0 0 3px rgba(0, 196, 140, 0.15);
+            outline: none;
+        }
+        .register-card textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+        .register-submit {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00c48c, #009688);
+            color: #fff;
+            box-shadow: 0 16px 30px rgba(0, 148, 96, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .register-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(0, 148, 96, 0.32);
+        }
+        .alert-custom {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        .note-text {
+            font-size: 14px;
+            color: #607d8b;
+            margin-top: -12px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 576px) {
+            .register-card {
+                padding: 28px 20px 36px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="page-wrapper">
+    <section class="register-hero">
+        <div class="register-card">
+            <h1>Đăng ký tài khoản</h1>
+            <p>Điền đầy đủ thông tin để chúng tôi tạo tài khoản và xác thực OTP ở bước tiếp theo.</p>
+            <div id="registerAlert" class="alert alert-custom d-none" role="alert"></div>
+            <form id="registerForm" novalidate>
+                <div class="mb-3">
+                    <label for="fullname" class="form-label">Họ và tên *</label>
+                    <input type="text" id="fullname" class="form-control" placeholder="VD: Nguyễn Văn A" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Số điện thoại *</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="VD: 0987654321" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email *</label>
+                    <input type="email" id="email" class="form-control" placeholder="VD: email@example.com" required>
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập *</label>
+                    <input type="text" id="username" class="form-control" placeholder="Tên đăng nhập mong muốn" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu *</label>
+                    <input type="password" id="password" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Nhập lại mật khẩu *</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                </div>
+                <div class="mb-3">
+                    <label for="company" class="form-label">Tên doanh nghiệp (không bắt buộc)</label>
+                    <input type="text" id="company" class="form-control" placeholder="Công ty của bạn">
+                </div>
+                <div class="mb-3">
+                    <label for="demand" class="form-label">Nhu cầu của bạn</label>
+                    <textarea id="demand" class="form-control" placeholder="Chia sẻ nhu cầu về sản phẩm hoặc dịch vụ"></textarea>
+                </div>
+                <p class="note-text">Sau khi nhấn Đăng ký, hệ thống sẽ chuyển sang bước nhập mã OTP để xác thực.</p>
+                <button type="submit" class="register-submit">Đăng ký và sang bước OTP</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const alertBox = document.getElementById('registerAlert');
+        const form = document.getElementById('registerForm');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const registerUrl = /*[[@{/register}]]*/ '/register';
+        const otpUrl = /*[[@{/register/otp}]]*/ '/register/otp';
+        const csrfToken = /*[[${_csrf != null ? _csrf.token : null}]]*/ null;
+        const csrfHeader = /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN';
+        const storageKey = 'pendingRegistration';
+
+        function showAlert(message, type = 'info') {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} alert-custom`;
+            alertBox.classList.remove('d-none');
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const fullname = document.getElementById('fullname').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const companyname = document.getElementById('company').value.trim();
+            const demand = document.getElementById('demand').value.trim();
+
+            if (!fullname || !phone || !email || !username || !password) {
+                showAlert('Vui lòng điền đầy đủ các trường bắt buộc.', 'warning');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAlert('Mật khẩu phải có ít nhất 6 ký tự.', 'warning');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showAlert('Mật khẩu xác nhận không trùng khớp.', 'warning');
+                return;
+            }
+
+            const payload = {
+                fullname,
+                phone,
+                email,
+                username,
+                password,
+                companyname,
+                demand,
+                status: 'Chờ kích hoạt'
+            };
+
+            try {
+                submitButton.disabled = true;
+                showAlert('Đang lưu thông tin đăng ký của bạn...', 'info');
+                const response = await fetch(registerUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
+                    },
+                    body: JSON.stringify(payload),
+                    credentials: 'same-origin'
+                });
+
+                const rawBody = await response.text();
+                let data = {};
+                if (rawBody) {
+                    try {
+                        data = JSON.parse(rawBody);
+                    } catch (error) {
+                        data = { message: rawBody };
+                    }
+                }
+
+                if (response.ok) {
+                    sessionStorage.setItem(storageKey, JSON.stringify(payload));
+                    const redirectUrl = data?.data?.redirectUrl || otpUrl;
+                    showAlert(data.message || 'Đã ghi nhận thông tin, chuyển sang bước xác thực OTP.', 'success');
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1200);
+                } else {
+                    showAlert(data.message || 'Đăng ký thất bại. Vui lòng thử lại.', 'danger');
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Có lỗi xảy ra khi xử lý đăng ký. Vui lòng thử lại.', 'danger');
+                submitButton.disabled = false;
+            }
+        });
+    });
+</script>
+</body>
+</html>

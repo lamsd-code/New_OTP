@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title layout:fragment="pageTitle">Xác thực OTP | SkyLand</title>
+    <style>
+        .otp-hero {
+            min-height: calc(100vh - 180px);
+            background: linear-gradient(135deg, #f3e7ff 0%, #e0f7ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 15px;
+        }
+        .otp-card {
+            width: 100%;
+            max-width: 480px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 45px rgba(86, 61, 124, 0.12);
+            padding: 36px 32px 44px;
+            position: relative;
+        }
+        .otp-card:before {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.35), rgba(0, 188, 212, 0.35));
+            z-index: -1;
+            filter: blur(18px);
+        }
+        .otp-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            color: #512da8;
+        }
+        .otp-card p {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+        .pending-info {
+            background: #f3e5f5;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: #4a148c;
+        }
+        .pending-info strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        .otp-input {
+            border-radius: 14px;
+            border: 1px solid #d1c4e9;
+            padding: 14px;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 6px;
+            font-weight: 600;
+        }
+        .otp-input:focus {
+            border-color: #7e57c2;
+            box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2);
+            outline: none;
+        }
+        .otp-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+        .otp-buttons button {
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            color: #fff;
+        }
+        .otp-buttons button[data-channel="email"] {
+            background: #5c6bc0;
+            box-shadow: 0 12px 24px rgba(92, 107, 192, 0.25);
+        }
+        .otp-buttons button[data-channel="sms"] {
+            background: #26a69a;
+            box-shadow: 0 12px 24px rgba(38, 166, 154, 0.25);
+        }
+        .otp-buttons button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .otp-buttons button.active {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(92, 107, 192, 0.35);
+        }
+        .otp-submit {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7e57c2, #26c6da);
+            color: #fff;
+            box-shadow: 0 16px 30px rgba(94, 53, 177, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .otp-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(94, 53, 177, 0.32);
+        }
+        .alert-custom {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        @media (max-width: 576px) {
+            .otp-card {
+                padding: 28px 20px 36px;
+                border-radius: 20px;
+            }
+            .otp-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="page-wrapper">
+    <section class="otp-hero">
+        <div class="otp-card">
+            <h1>Xác thực mã OTP</h1>
+            <p>Chúng tôi đã ghi nhận thông tin đăng ký. Vui lòng nhập mã OTP để hoàn tất.</p>
+            <div class="pending-info">
+                <strong id="pendingName">Đang chuẩn bị thông tin...</strong>
+                <div>Email: <span id="pendingEmail">Đang cập nhật</span></div>
+                <div>Điện thoại: <span id="pendingPhone">Đang cập nhật</span></div>
+            </div>
+            <div id="otpAlert" class="alert alert-custom d-none" role="alert"></div>
+            <form id="otpForm" novalidate>
+                <div class="mb-3">
+                    <label for="otp" class="form-label">Nhập mã OTP 6 số *</label>
+                    <input type="text" id="otp" class="form-control otp-input" placeholder="------" maxlength="6" required>
+                </div>
+                <div class="otp-buttons">
+                    <button type="button" id="otpEmailBtn" data-channel="email">Gửi OTP qua Email</button>
+                    <button type="button" id="otpSmsBtn" data-channel="sms">Gửi OTP qua SMS</button>
+                </div>
+                <button type="submit" class="otp-submit">Xác thực và hoàn tất</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const alertBox = document.getElementById('otpAlert');
+        const form = document.getElementById('otpForm');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const otpInput = document.getElementById('otp');
+        const otpEmailBtn = document.getElementById('otpEmailBtn');
+        const otpSmsBtn = document.getElementById('otpSmsBtn');
+        const pendingName = document.getElementById('pendingName');
+        const pendingEmail = document.getElementById('pendingEmail');
+        const pendingPhone = document.getElementById('pendingPhone');
+
+        const pendingUrl = /*[[@{/register/pending}]]*/ '/register/pending';
+        const verifyUrl = /*[[@{/register/verify-otp}]]*/ '/register/verify-otp';
+        const otpEmailUrl = /*[[@{/auth/otp/send/email}]]*/ '/auth/otp/send/email';
+        const otpSmsUrl = /*[[@{/auth/otp/send/sms}]]*/ '/auth/otp/send/sms';
+        const homeUrl = /*[[@{/trang-chu}]]*/ '/trang-chu';
+        const registerUrl = /*[[@{/register}]]*/ '/register';
+        const csrfToken = /*[[${_csrf != null ? _csrf.token : null}]]*/ null;
+        const csrfHeader = /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN';
+        const storageKey = 'pendingRegistration';
+
+        let pendingInfo = null;
+        let selectedChannel = null;
+
+        function showAlert(message, type = 'info') {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} alert-custom`;
+            alertBox.classList.remove('d-none');
+        }
+
+        function updateButtonsAvailability(info) {
+            if (!otpEmailBtn.classList.contains('active')) {
+                otpEmailBtn.disabled = false;
+            }
+            if (!otpSmsBtn.classList.contains('active')) {
+                otpSmsBtn.disabled = false;
+            }
+            if (!info?.email && !otpEmailBtn.classList.contains('active')) {
+                otpEmailBtn.disabled = true;
+            }
+            if (!info?.phone && !otpSmsBtn.classList.contains('active')) {
+                otpSmsBtn.disabled = true;
+            }
+        }
+
+        function displayPending(info) {
+            if (info?.fullname) {
+                pendingName.textContent = `Xin chào ${info.fullname}!`;
+            } else {
+                pendingName.textContent = 'Xin chào quý khách!';
+            }
+            pendingEmail.textContent = info?.email || 'Chưa cung cấp';
+            pendingPhone.textContent = info?.phone || 'Chưa cung cấp';
+            updateButtonsAvailability(info);
+        }
+
+        async function loadPending() {
+            try {
+                const response = await fetch(pendingUrl, { credentials: 'same-origin' });
+                const rawBody = await response.text();
+                let data = {};
+                if (rawBody) {
+                    try {
+                        data = JSON.parse(rawBody);
+                    } catch (error) {
+                        data = { message: rawBody };
+                    }
+                }
+
+                if (response.ok) {
+                    pendingInfo = data.data || {};
+                    displayPending(pendingInfo);
+                    showAlert(data.message || 'Vui lòng chọn phương thức nhận mã OTP.', 'info');
+                } else {
+                    sessionStorage.removeItem(storageKey);
+                    showAlert(data.message || 'Không tìm thấy thông tin đăng ký. Vui lòng thực hiện lại.', 'danger');
+                    setTimeout(() => {
+                        window.location.href = registerUrl;
+                    }, 1800);
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Không thể tải thông tin đăng ký. Vui lòng thử lại.', 'danger');
+                sessionStorage.removeItem(storageKey);
+                setTimeout(() => {
+                    window.location.href = registerUrl;
+                }, 2000);
+            }
+        }
+
+        function startCooldown(button) {
+            const originalText = button.textContent;
+            let remaining = 60;
+            button.disabled = true;
+            button.classList.add('active');
+            const timer = setInterval(() => {
+                remaining -= 1;
+                button.textContent = `${originalText} (${remaining}s)`;
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('active');
+                }
+            }, 1000);
+        }
+
+        async function sendOtp(channel) {
+            if (!pendingInfo) {
+                showAlert('Không tìm thấy thông tin đăng ký. Vui lòng đăng ký lại.', 'danger');
+                return;
+            }
+
+            const contact = channel === 'email' ? pendingInfo.email : pendingInfo.phone;
+            if (!contact) {
+                showAlert('Vui lòng cung cấp thông tin liên hệ tương ứng trong bước đăng ký.', 'warning');
+                return;
+            }
+
+            const button = channel === 'email' ? otpEmailBtn : otpSmsBtn;
+            const url = channel === 'email' ? otpEmailUrl : otpSmsUrl;
+            const payload = new URLSearchParams();
+            payload.append(channel === 'email' ? 'email' : 'phone', contact);
+
+            try {
+                button.disabled = true;
+                showAlert('Đang gửi mã OTP, vui lòng chờ trong giây lát...', 'info');
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
+                    },
+                    body: payload,
+                    credentials: 'same-origin'
+                });
+                const text = await response.text();
+                if (response.ok) {
+                    selectedChannel = channel;
+                    startCooldown(button);
+                    showAlert('Mã OTP đã được gửi. Vui lòng kiểm tra ' + (channel === 'email' ? 'email' : 'tin nhắn SMS') + ' của bạn.', 'success');
+                } else {
+                    showAlert(text || 'Không thể gửi mã OTP. Vui lòng thử lại.', 'danger');
+                    button.disabled = false;
+                    button.classList.remove('active');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại.', 'danger');
+                button.disabled = false;
+                button.classList.remove('active');
+            }
+        }
+
+        otpEmailBtn.addEventListener('click', () => sendOtp('email'));
+        otpSmsBtn.addEventListener('click', () => sendOtp('sms'));
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const otp = otpInput.value.trim();
+            if (!/^\d{6}$/.test(otp)) {
+                showAlert('Vui lòng nhập chính xác mã OTP gồm 6 chữ số.', 'warning');
+                return;
+            }
+
+            if (!selectedChannel) {
+                if (pendingInfo?.email && !pendingInfo?.phone) {
+                    selectedChannel = 'email';
+                } else if (pendingInfo?.phone && !pendingInfo?.email) {
+                    selectedChannel = 'sms';
+                }
+            }
+
+            if (!selectedChannel) {
+                showAlert('Vui lòng lấy mã OTP qua Email hoặc SMS trước khi xác thực.', 'warning');
+                return;
+            }
+
+            const payload = {
+                otp,
+                channel: selectedChannel
+            };
+
+            try {
+                submitButton.disabled = true;
+                showAlert('Đang xác thực mã OTP...', 'info');
+                const response = await fetch(verifyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
+                    },
+                    body: JSON.stringify(payload),
+                    credentials: 'same-origin'
+                });
+
+                const rawBody = await response.text();
+                let data = {};
+                if (rawBody) {
+                    try {
+                        data = JSON.parse(rawBody);
+                    } catch (error) {
+                        data = { message: rawBody };
+                    }
+                }
+
+                if (response.ok) {
+                    sessionStorage.removeItem(storageKey);
+                    showAlert(data.message || 'Xác thực thành công. Chúng tôi sẽ chuyển bạn về trang chủ.', 'success');
+                    setTimeout(() => {
+                        window.location.href = homeUrl;
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Xác thực thất bại. Vui lòng thử lại.', 'danger');
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Có lỗi xảy ra khi xác thực OTP. Vui lòng thử lại.', 'danger');
+                submitButton.disabled = false;
+            }
+        });
+
+        const stored = sessionStorage.getItem(storageKey);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                displayPending(parsed);
+            } catch (error) {
+                console.warn('Không thể đọc dữ liệu tạm:', error);
+            }
+        }
+
+        loadPending();
+    });
+</script>
+</body>
+</html>

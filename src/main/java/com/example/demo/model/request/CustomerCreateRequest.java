@@ -11,6 +11,8 @@ public class CustomerCreateRequest extends AbstractDTO {
     private String fullname;
     private String phone;
     private String email;
+    private String username;
+    private String password;
     private String companyname;
     private String demand;
     private String status;
