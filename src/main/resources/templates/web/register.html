@@ -189,6 +189,7 @@
         const form = document.getElementById('registerForm');
         const otpEmailBtn = document.getElementById('otpEmailBtn');
         const otpSmsBtn = document.getElementById('otpSmsBtn');
+
         let otpTarget = null;
 
         function showAlert(message, type = 'info') {
@@ -218,7 +219,7 @@
             }
 
             const targetButton = channel === 'email' ? otpEmailBtn : otpSmsBtn;
-            const url = channel === 'email' ? '/auth/otp/send/email' : '/auth/otp/send/sms';
+
             const payload = new URLSearchParams();
             payload.append(channel === 'email' ? 'email' : 'phone', channel === 'email' ? email : phone);
 
@@ -229,14 +230,13 @@
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: payload
+
                 });
                 const text = await response.text();
                 if (response.ok) {
                     otpTarget = channel;
                     showAlert('Mã OTP đã được gửi. Vui lòng kiểm tra ' + (channel === 'email' ? 'email' : 'tin nhắn SMS') + ' của bạn.', 'success');
+
                 } else {
                     showAlert(text || 'Không thể gửi mã OTP. Vui lòng thử lại.', 'danger');
                     targetButton.disabled = false;
@@ -286,8 +286,7 @@
                 return;
             }
 
-            if (!otp || otp.length < 4) {
-                showAlert('Vui lòng nhập mã OTP hợp lệ.', 'warning');
+
                 return;
             }
 
@@ -307,19 +306,7 @@
             try {
                 resetOtpButtons();
                 showAlert('Đang xử lý đăng ký của bạn...', 'info');
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
 
-                const data = await response.json();
-                if (response.ok) {
-                    showAlert(data.message || 'Đăng ký thành công. Bạn sẽ được chuyển về trang chủ.', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/trang-chu';
                     }, 1500);
                 } else {
                     showAlert(data.message || 'Đăng ký thất bại. Vui lòng thử lại.', 'danger');
