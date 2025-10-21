@@ -66,6 +66,7 @@
             resize: vertical;
             min-height: 90px;
         }
+
         .register-submit {
             width: 100%;
             border: none;
@@ -87,17 +88,13 @@
             padding: 12px 16px;
             font-size: 14px;
         }
-        .note-text {
-            font-size: 14px;
-            color: #607d8b;
-            margin-top: -12px;
-            margin-bottom: 24px;
-        }
+
         @media (max-width: 576px) {
             .register-card {
                 padding: 28px 20px 36px;
                 border-radius: 20px;
             }
+
         }
     </style>
 </head>
@@ -106,7 +103,7 @@
     <section class="register-hero">
         <div class="register-card">
             <h1>Đăng ký tài khoản</h1>
-            <p>Điền đầy đủ thông tin để chúng tôi tạo tài khoản và xác thực OTP ở bước tiếp theo.</p>
+
             <div id="registerAlert" class="alert alert-custom d-none" role="alert"></div>
             <form id="registerForm" novalidate>
                 <div class="mb-3">
@@ -141,8 +138,7 @@
                     <label for="demand" class="form-label">Nhu cầu của bạn</label>
                     <textarea id="demand" class="form-control" placeholder="Chia sẻ nhu cầu về sản phẩm hoặc dịch vụ"></textarea>
                 </div>
-                <p class="note-text">Sau khi nhấn Đăng ký, hệ thống sẽ chuyển sang bước nhập mã OTP để xác thực.</p>
-                <button type="submit" class="register-submit">Đăng ký và sang bước OTP</button>
+
             </form>
         </div>
     </section>
@@ -152,18 +148,14 @@
     document.addEventListener('DOMContentLoaded', () => {
         const alertBox = document.getElementById('registerAlert');
         const form = document.getElementById('registerForm');
-        const submitButton = form.querySelector('button[type="submit"]');
-        const registerUrl = /*[[@{/register}]]*/ '/register';
-        const otpUrl = /*[[@{/register/otp}]]*/ '/register/otp';
-        const csrfToken = /*[[${_csrf != null ? _csrf.token : null}]]*/ null;
-        const csrfHeader = /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN';
-        const storageKey = 'pendingRegistration';
+
 
         function showAlert(message, type = 'info') {
             alertBox.textContent = message;
             alertBox.className = `alert alert-${type} alert-custom`;
             alertBox.classList.remove('d-none');
         }
+
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -176,6 +168,7 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const companyname = document.getElementById('company').value.trim();
             const demand = document.getElementById('demand').value.trim();
+
 
             if (!fullname || !phone || !email || !username || !password) {
                 showAlert('Vui lòng điền đầy đủ các trường bắt buộc.', 'warning');
@@ -192,6 +185,7 @@
                 return;
             }
 
+
             const payload = {
                 fullname,
                 phone,
@@ -200,47 +194,12 @@
                 password,
                 companyname,
                 demand,
-                status: 'Chờ kích hoạt'
-            };
 
-            try {
-                submitButton.disabled = true;
-                showAlert('Đang lưu thông tin đăng ký của bạn...', 'info');
-                const response = await fetch(registerUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
-                    },
-                    body: JSON.stringify(payload),
-                    credentials: 'same-origin'
-                });
-
-                const rawBody = await response.text();
-                let data = {};
-                if (rawBody) {
-                    try {
-                        data = JSON.parse(rawBody);
-                    } catch (error) {
-                        data = { message: rawBody };
-                    }
-                }
-
-                if (response.ok) {
-                    sessionStorage.setItem(storageKey, JSON.stringify(payload));
-                    const redirectUrl = data?.data?.redirectUrl || otpUrl;
-                    showAlert(data.message || 'Đã ghi nhận thông tin, chuyển sang bước xác thực OTP.', 'success');
-                    setTimeout(() => {
-                        window.location.href = redirectUrl;
-                    }, 1200);
-                } else {
-                    showAlert(data.message || 'Đăng ký thất bại. Vui lòng thử lại.', 'danger');
-                    submitButton.disabled = false;
                 }
             } catch (error) {
                 console.error(error);
                 showAlert('Có lỗi xảy ra khi xử lý đăng ký. Vui lòng thử lại.', 'danger');
-                submitButton.disabled = false;
+
             }
         });
     });
