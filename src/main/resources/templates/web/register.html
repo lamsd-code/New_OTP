@@ -189,12 +189,7 @@
         const form = document.getElementById('registerForm');
         const otpEmailBtn = document.getElementById('otpEmailBtn');
         const otpSmsBtn = document.getElementById('otpSmsBtn');
-        const otpEmailUrl = /*[[@{/auth/otp/send/email}]]*/ '/auth/otp/send/email';
-        const otpSmsUrl = /*[[@{/auth/otp/send/sms}]]*/ '/auth/otp/send/sms';
-        const registerUrl = /*[[@{/register}]]*/ '/register';
-        const homeUrl = /*[[@{/trang-chu}]]*/ '/trang-chu';
-        const csrfToken = /*[[${_csrf != null ? _csrf.token : null}]]*/ null;
-        const csrfHeader = /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN';
+
         let otpTarget = null;
 
         function showAlert(message, type = 'info') {
@@ -224,7 +219,7 @@
             }
 
             const targetButton = channel === 'email' ? otpEmailBtn : otpSmsBtn;
-            const url = channel === 'email' ? otpEmailUrl : otpSmsUrl;
+
             const payload = new URLSearchParams();
             payload.append(channel === 'email' ? 'email' : 'phone', channel === 'email' ? email : phone);
 
@@ -235,20 +230,13 @@
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
-                    },
-                    body: payload,
-                    credentials: 'same-origin'
+
                 });
                 const text = await response.text();
                 if (response.ok) {
                     otpTarget = channel;
                     showAlert('Mã OTP đã được gửi. Vui lòng kiểm tra ' + (channel === 'email' ? 'email' : 'tin nhắn SMS') + ' của bạn.', 'success');
-                    setTimeout(() => {
-                        targetButton.disabled = false;
-                        targetButton.classList.remove('active');
-                    }, 60000);
+
                 } else {
                     showAlert(text || 'Không thể gửi mã OTP. Vui lòng thử lại.', 'danger');
                     targetButton.disabled = false;
@@ -298,8 +286,7 @@
                 return;
             }
 
-            if (!/^\d{6}$/.test(otp)) {
-                showAlert('Vui lòng nhập chính xác mã OTP gồm 6 chữ số.', 'warning');
+
                 return;
             }
 
@@ -319,29 +306,7 @@
             try {
                 resetOtpButtons();
                 showAlert('Đang xử lý đăng ký của bạn...', 'info');
-                const response = await fetch(registerUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
-                    },
-                    body: JSON.stringify(payload),
-                    credentials: 'same-origin'
-                });
 
-                const rawBody = await response.text();
-                let data = {};
-                if (rawBody) {
-                    try {
-                        data = JSON.parse(rawBody);
-                    } catch (error) {
-                        data = { message: rawBody };
-                    }
-                }
-                if (response.ok) {
-                    showAlert(data.message || 'Đăng ký thành công. Bạn sẽ được chuyển về trang chủ.', 'success');
-                    setTimeout(() => {
-                        window.location.href = homeUrl;
                     }, 1500);
                 } else {
                     showAlert(data.message || 'Đăng ký thất bại. Vui lòng thử lại.', 'danger');
